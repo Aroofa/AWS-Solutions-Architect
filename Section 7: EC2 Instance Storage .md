@@ -197,3 +197,21 @@ When you create an encrypted EBS volume, you get:
 ---
 
 ## Lesson 9: EBS vs EFS
+
+### EBS:
+- One instance (except io1/io2 multi-attach)  
+- Locked to AZ  
+- gp2: IO linked to size  
+- gp3/io1: IO configurable independently  
+- Migrate by snapshot → restore  
+- Backups use IO  
+- Root volumes deleted by default on termination  
+
+### EFS:
+- Mount 100s of instances across AZ  
+- Great for shared storage (WordPress)  
+- Linux only  
+- Higher cost  
+- Storage tiers  
+
+**Remember: EFS vs EBS vs Instance Store**

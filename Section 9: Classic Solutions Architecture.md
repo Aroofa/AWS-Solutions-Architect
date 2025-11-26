@@ -1,7 +1,4 @@
 ## Lesson 1: WhatIsTheTime.com 
-This lesson explains how a simple application evolves into a scalable, highly available, and cost-optimized architecture — essential knowledge for the AWS Solutions Architect Associate exam.
----
-
 ### 1. Single EC2 Instance (Start Small)
 - **Simple, cheap**, uses 1 public EC2 + Elastic IP.
 - **Cons:** Single point of failure, no scalability, downtime during changes.
@@ -71,10 +68,7 @@ This lesson explains how a simple application evolves into a scalable, highly av
 
 ## Final Architecture Overview
 
-**Route 53 (Alias)**  
-→ **Load Balancer (Multi-AZ)**  
-→ **Auto Scaling Group (Multi-AZ)**  
-→ **Private EC2 Instances**
+**Route 53 (Alias)**  → **Load Balancer (Multi-AZ)**  → **Auto Scaling Group (Multi-AZ)**  → **Private EC2 Instances**
 
 ### Features
 - Highly available  
@@ -85,22 +79,3 @@ This lesson explains how a simple application evolves into a scalable, highly av
 - Zero-downtime scaling  
 
 ---
-
-## Key Exam Concepts (Quick Recall)
-
-| Topic | Key Points |
-|-------|------------|
-| Public vs Private EC2 | Public needs public IP/Elastic IP |
-| Elastic IP | Static, but not scalable |
-| Route 53 A Records | TTL problems, no health checks |
-| Route 53 Alias | Best for LB, CloudFront, S3 |
-| Load Balancers | Health checks, Multi-AZ, dynamic IPs |
-| Auto Scaling Group | Auto scaling + capacity maintenance |
-| Multi-AZ | Survives AZ failure |
-| Vertical Scaling | Downtime required |
-| Horizontal Scaling | Requires Load Balancer |
-| Reserved Instances | Best for steady load |
-| Spot Instances | Cheapest, interruptible |
-
----
-

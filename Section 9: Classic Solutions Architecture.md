@@ -1,81 +1,148 @@
-## Lesson 1: WhatIsTheTime.com 
-### 1. Single EC2 Instance (Start Small)
-- **Simple, cheap**, uses 1 public EC2 + Elastic IP.
+# AWS Scalable Web App Cheat Sheet
+
+---
+
+## Lesson 1: WhatIsTheTime.com (Scalable EC2 Architecture)
+
+### 1. Single EC2 Instance
+- **Pros:** Simple, cheap; 1 public EC2 + Elastic IP.
 - **Cons:** Single point of failure, no scalability, downtime during changes.
 
-### 2. Vertical Scaling (Scale Up)
-- Increase instance size (t2.micro → m5.large).
-- **Always requires downtime.**  
-- Works only for limited growth.
-**Exam Tip:** Vertical scaling = “bigger box” → downtime.
+### 2. Vertical Scaling
+- Increase instance size (t2.micro → m5.large)
+- **Requires downtime**
+- Limited growth
 
----
+> **Exam Tip:** Vertical scaling = “bigger box” → downtime.
 
-### 3. Manual Horizontal Scaling (Scale Out)
-- Add more EC2 instances manually.
-- Each has its own public IP / Elastic IP.
-- **Problems:** IP limits, user confusion, difficult management.
-**Exam Tip:** Elastic IPs do NOT scale.
-
----
+### 3. Horizontal Scaling (Manual)
+- Add EC2 instances manually
+- Each instance has its own IP → management headache
+- Elastic IPs **do not scale**
 
 ### 4. Horizontal Scaling via Route 53 A Records
-- Route 53 distributes traffic across instance public IPs.
-- **Problems:** TTL caching → stale IPs; no health checks.
-**Exam Tip:** A-records + dynamic EC2 IPs = bad design.
+- Distribute traffic across public IPs
+- **Problems:** TTL caching, no health checks
+> **Bad design for dynamic EC2 IPs**
 
----
-
-### 5. Introduce a Load Balancer (ALB/ELB)
-- Move EC2 instances to **private subnets**.
-- Route 53 uses **Alias** → Load Balancer (LB).
-- LB manages:
-  - Health checks  
-  - Dynamic IP updates  
-  - Automatic load distribution  
-  - Zero-downtime deployments  
-**Exam Tip:** Use **Alias → Load Balancer** for scalable architectures.
-
----
+### 5. Load Balancer (ALB/ELB)
+- Move EC2s to **private subnets**
+- Route 53 uses **Alias → LB**
+- Manages:
+  - Health checks
+  - Dynamic IP updates
+  - Auto load distribution
+  - Zero-downtime deployments
 
 ### 6. Auto Scaling Group (ASG)
-- Automatically launches/terminates EC2 instances.
-- Maintains **desired capacity** and scales via:
-  - CPU
-  - CloudWatch metrics
-  - Schedules
-- Integrates with Load Balancer target groups.
-**Exam Tip:** ALB + ASG = core high-availability pattern.
-
----
+- Auto launch/terminate EC2s
+- Maintains **desired capacity**
+- Integrates with LB target groups
+- Scales via CPU, CloudWatch, schedules
 
 ### 7. Multi-AZ Architecture
-- LB and ASG span multiple availability zones.
-- If one AZ fails, traffic flows to the others.
-- Provides **high availability**, not multi-region redundancy.
-**Exam Tip:** Multi-AZ ≠ Multi-Region.
+- LB & ASG span multiple AZs
+- Provides **high availability**, not multi-region redundancy
+
+### 8. Cost Optimization
+- Baseline → **Reserved Instances** (predictable)
+- Burst → **Spot Instances** (interruptible, cheapest)
+
+**Final Architecture**
+    Route 53 (Alias)
+            ↓
+    Load Balancer (Multi-AZ)
+            ↓
+    Auto Scaling Group (Multi-AZ)
+            ↓
+    Private EC2 Instances
 
 ---
 
-### 8. Cost Optimization: Reserved + Spot Instances
-- Baseline capacity (e.g., 2 instances) → **Reserved Instances / Savings Plans** (up to 72% savings).
-- Extra burst capacity → **Spot instances** (cheapest, interruptible).
-**Exam Tip:**  
-- Reserved = predictable workloads.  
-- Spot = flexible, interruptible workloads.
+## Lesson 2: Route 53 & DNS Quick Reference
+
+| Term | Description |
+|------|------------|
+| **Domain Registrar** | Amazon Route 53, GoDaddy |
+| **DNS Records** | A, AAAA, CNAME, NS, MX, TXT, SPF, etc. |
+| **Zone File** | Contains DNS records |
+| **Name Server** | Resolves DNS queries |
+| **TLD** | Top Level Domain (.com, .org) |
+| **SLD** | Second Level Domain (example.com) |
+
+### Record Types
+- **A / AAAA:** hostname → IPv4 / IPv6
+- **CNAME:** hostname → hostname (non-root only)
+- **NS:** name servers for the zone
+- **Alias:** points to AWS resource, root domain supported, free, auto-updates IPs
+
+### Routing Policies
+- Simple, Weighted, Failover, Latency-based, Geolocation, Multi-Value, Geoproximity, IP-based
+
+### Health Checks
+- Public: HTTP, HTTPS, TCP endpoints
+- Can integrate CloudWatch alarms
+- Private: use CloudWatch metric & alarm
+
+> **Exam Tip:** Alias + LB + Health Checks = scalable, HA architecture
 
 ---
 
-## Final Architecture Overview
+## Lesson 3: MyWordPress.com (Stateful Web App)
 
-**Route 53 (Alias)**  → **Load Balancer (Multi-AZ)**  → **Auto Scaling Group (Multi-AZ)**  → **Private EC2 Instances**
+### Database Layer
+| Option | Features |
+|--------|---------|
+| **RDS (MySQL)** | Multi-AZ, standard scaling |
+| **Aurora MySQL** | Multi-AZ, read replicas, global DBs, low operational overhead |
 
-### Features
-- Highly available  
-- Fault tolerant  
-- Scalable horizontally  
-- Auto-healing  
-- Cost optimized  
-- Zero-downtime scaling  
+> **Tip:** Aurora preferred for high-traffic applications.
+
+### File Storage: Images & Media
+#### EBS (Single Instance)
+- Works for 1 EC2, 1 AZ
+- Multi-AZ → images not shared → breaks WordPress
+
+#### EFS (Shared Storage)
+- NFS shared across all EC2 instances
+- Creates ENIs in each AZ
+- Supports **multi-AZ scaling**
+- Shared storage for WordPress uploads
+
+| Feature | EBS | EFS |
+|---------|-----|-----|
+| Cost | Lower | Higher |
+| Multi-AZ | ❌ | ✅ |
+| Shared storage | ❌ | ✅ |
+| Scalability | Limited | High |
+
+### Architecture Summary
+      Client
+        ↓
+      Route 53
+        ↓
+      ALB (Multi-AZ)
+        ↓
+      EC2 Auto Scaling Group (Stateless, Multi-AZ)
+        ↓
+      Shared File Storage (EFS)
+        ↓
+      Database (Aurora MySQL or RDS)
+
+
+**Features**
+- Horizontally scalable web tier
+- Multi-AZ redundancy
+- Shared media storage
+- Durable database storage with read replicas
+- Centralized session/content handling
 
 ---
+
+## Key Exam Tips
+- **EBS vs EFS:** EBS for single-instance, EFS for multi-instance scaling
+- **Aurora vs RDS:** Aurora preferred for high-traffic apps
+- **Cost vs Performance:** EFS = more expensive, critical for multi-AZ
+- **Vertical vs Horizontal Scaling:** Horizontal + LB + ASG preferred
+- **Multi-AZ ≠ Multi-Region**
+- **Route 53 Alias → LB** is the recommended scalable DNS design

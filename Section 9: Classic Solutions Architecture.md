@@ -164,39 +164,112 @@
       Database (Aurora MySQL or RDS)
 
   
+
+---
+
+## Lesson 4: Instantiating Applications Quickly
+
+### EC2 Launch Speed
+
+1. **Golden AMI**
+   - Pre-install OS, apps, dependencies
+   - Create an AMI
+   - Future EC2 instances launch **ready-to-go**
+   - Fastest startup method
+
+2. **User Data / Bootstrapping**
+   - Configure instance at startup
+   - Install dynamic settings: DB URLs, passwords, etc.
+   - Slower than golden AMI for repeated installs
+
+> **Hybrid Approach:** Golden AMI + user data → pre-installed apps + dynamic configuration
+
+### RDS & EBS Snapshots
+- **RDS:** Restore from snapshot → database ready with schema and data
+- **EBS:** Restore from snapshot → disk pre-formatted with data
+- Speeds up deployment and recovery
+
+**Exam Tip:**  
+- Use **golden AMI + user data** to speed EC2 launch  
+- Use **RDS/EBS snapshots** to speed database and storage initialization
+
+---
+
+## Lesson 5: Elastic Beanstalk (Managed App Deployment)
+
+### What is Elastic Beanstalk?
+- Developer-centric deployment service
+- Manages underlying infrastructure: EC2, ASG, ELB, RDS, scaling, health monitoring
+- Developer provides **only the application code**
+- Supports multiple programming languages and container formats
+
+### Components
+- **Application:** Collection of environments, versions, and configurations
+- **Version:** Iteration of application code
+- **Environment:** Collection of resources running a specific version
+- **Tiers:** 
+  - Web server environment → traditional LB + ASG
+  - Worker environment → EC2 instances process **SQS queue** messages
+
+### Deployment Modes
+1. **Single Instance**
+   - One EC2 instance (with Elastic IP)
+   - Suitable for dev/test
+2. **High Availability**
+   - Multi-AZ LB + ASG
+   - Multi-AZ RDS
+   - Production-ready deployment
+
+### Key Features
+- Supports Dev/Test/Prod environments
+- Updates via application versions
+- Worker & Web environments can be combined
+- Autoscaling based on load (HTTP requests or SQS messages)
+
 ---
 
 ## Key Takeaways
 
 - **Stateless Web Tier**:
-  - Use ALB + ASG for horizontal scaling.
-  - Sticky sessions or server-side sessions for user state.
-  - ElastiCache or DynamoDB for session storage.
+  - ALB + ASG for horizontal scaling
+  - Sticky sessions / server-side sessions
+  - ElastiCache / DynamoDB for session storage
 
 - **Stateful / Media Apps**:
-  - Use EFS for shared files.
-  - Aurora MySQL / RDS for user and content storage.
-  - Read replicas & caching for scaling reads.
+  - EFS for shared files
+  - Aurora MySQL / RDS for user/content storage
+  - Read replicas & caching for scaling reads
 
 - **Multi-AZ / HA**:
-  - Always deploy LB, ASG, DB, and cache in Multi-AZ.
-  - Route 53 + Alias → LB → EC2 ensures resilient architecture.
+  - LB, ASG, DB, cache → Multi-AZ
+  - Route 53 → highly available DNS
+
+- **Elastic Beanstalk**:
+  - Simplifies deployment
+  - Auto-manages infrastructure
+  - Web + Worker tiers, version control
+  - Supports multiple languages and environments
 
 - **Security**:
-  - Tight SG rules between tiers.
-  - Limit access from the internet where possible.
+  - Tight SG rules between tiers
+  - Limit public access where possible
 
 - **Cost Optimization**:
   - Reserved + Spot instances
   - Caching reduces DB load
   - EFS higher cost but required for multi-AZ media sharing
 
+- **Rapid Deployment**:
+  - Golden AMI + User Data
+  - RDS & EBS snapshots for fast restoration
+
 ---
 
 **Exam Tips**
-- Horizontal scaling + LB + ASG = core high-availability pattern
+- Horizontal scaling + LB + ASG = core HA pattern
 - Multi-AZ ≠ Multi-Region
 - Stickiness = short-term solution, use server-side session for scale
 - ElastiCache = sub-ms session retrieval, reduces DB load
 - EFS = shared media for multi-instance apps
-
+- Snapshots & golden AMI = speed up deployments
+- Beanstalk = manage infra, deploy code, supports dev/prod easily

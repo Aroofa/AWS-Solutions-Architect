@@ -1,5 +1,3 @@
-# EC2 Fundamentals
-
 ## EC2
 EC2 is one of the most popular of AWS’ offering  
 EC2 = Elastic Compute Cloud = Infrastructure as a Service  

@@ -45,10 +45,11 @@
 ```mermaid  
 flowchart TD
     A[Client Upload] --> B[Choose Encryption Method]
-    B --> C[SSE-S3: AWS-managed key → Encrypted object in S3]
-    B --> D[SSE-KMS: KMS key → Encrypted object in S3 (requires KMS access to read)]
-    B --> E[SSE-C: Customer key → Encrypted object in S3 (key never stored, HTTPS required)]
-    B --> F[Client-Side: Encrypt locally → Upload → Decrypt after download]
+    B --> C[SSE-S3: AWS-managed key -> Encrypted object in S3]
+    B --> D[SSE-KMS: KMS key -> Encrypted object in S3. Requires KMS access to read]
+    B --> E[SSE-C: Customer key -> Encrypted object in S3. Key never stored, HTTPS required]
+    B --> F[Client-Side: Encrypt locally -> Upload -> Decrypt after download]
+
 ```
 
 

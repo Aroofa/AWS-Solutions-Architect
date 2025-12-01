@@ -159,6 +159,7 @@ flowchart TD
   - Allow logged-in users to download premium content.
   - Temporarily allow dynamic users to upload/download files.
   - Maintain bucket privacy while providing temporary access.
+  - 
 ```mermaid
 flowchart TD
     A[Generate Pre-signed URL] --> B[URL carries permissions of generator]
@@ -166,6 +167,7 @@ flowchart TD
     C --> D[User accesses object temporarily (GET/PUT)]
     D --> E[Access expires after defined time]
 ```
+
 ---
 
 # Lesson 8: Glacier Vault Lock and S3 Object Lock

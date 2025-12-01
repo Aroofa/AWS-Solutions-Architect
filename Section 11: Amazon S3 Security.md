@@ -39,6 +39,8 @@
     }
   ]
 }
+```
+
 ## 3. Encryption Flow Diagram
 Client Upload
      │

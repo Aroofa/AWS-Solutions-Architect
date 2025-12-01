@@ -50,7 +50,7 @@ flowchart TD
     B --> E[SSE-C: Customer key → Encrypted object in S3 (key never stored, HTTPS required)]
     B --> F[Client-Side: Encrypt locally → Upload → Decrypt after download]
 
-````
+```
 
 ## 4. Quick Exam Tips
 - **SSE-S3**: Easy to use, default encryption.

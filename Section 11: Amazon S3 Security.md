@@ -159,12 +159,12 @@ flowchart TD
   - Allow logged-in users to download premium content.
   - Temporarily allow dynamic users to upload/download files.
   - Maintain bucket privacy while providing temporary access.
-  - 
+
 ```mermaid
 flowchart TD
     A[Generate Pre-signed URL] --> B[URL carries permissions of generator]
     B --> C[Send URL to user]
-    C --> D[User accesses object temporarily (GET/PUT)]
+    C --> D[User accesses object temporarily - GET or PUT]
     D --> E[Access expires after defined time]
 ```
 

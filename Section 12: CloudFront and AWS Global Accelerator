@@ -1,0 +1,197 @@
+# Lesson 1: CloudFront Overview
+
+## What is CloudFront?
+- CloudFront is a **Content Delivery Network (CDN)**.
+- Anytime you see **CDN** in the exam, think **CloudFront**.
+- Improves read performance by **caching website content** at **edge locations** globally.
+- Provides **lower latency** for users worldwide → better user experience.
+- Offers **DDoS protection** through global distribution, **AWS Shield**, and **WAF**.
+
+## CloudFront Components
+- **Points of Presence (PoPs)**:
+  - Edge locations
+  - Caches around the world
+- Content is cached globally for **faster access**.
+  
+## How CloudFront Works
+1. A user requests content from a **nearby edge location**.
+2. The edge location checks its **local cache**:
+   - **Cache hit** → content served immediately.
+   - **Cache miss** → content fetched from the **origin** (e.g., S3 bucket, HTTP server).
+3. The retrieved content is **cached locally** for future requests.
+
+### Example:
+- S3 bucket hosted in **Australia**.
+- User in **USA** requests content → edge location in USA serves content.
+- First request fetches from Australia → cached at the edge.
+- Subsequent requests from nearby users → served directly from edge.
+
+## CloudFront Origins
+- **Amazon S3 bucket** → can serve or accept uploads via CloudFront.
+  - Use **Origin Access Control (OAC)** to secure connection.
+- **VPC origin** → private backend (ALB, NLB, EC2) inside VPC.
+- **Custom HTTP origin** → any HTTP backend (public S3 website or external server).
+
+## Edge Locations and Global Delivery
+- Content is distributed globally through **hundreds of edge locations**.
+- Users access the **nearest edge** for lower latency.
+- Example: Users in Los Angeles and Sao Paulo connect to local edge locations; content fetched privately from origin.
+
+## CloudFront vs S3 Cross Region Replication (CRR)
+| Feature                     | CloudFront                        | S3 Cross Region Replication (CRR)         |
+|-------------------------------|----------------------------------|-------------------------------------------|
+| Purpose                     | Cache content globally           | Replicate bucket to another region       |
+| Network                     | Global Edge network (~216 PoPs)  | Specific regions configured             |
+| Latency                     | Low latency through caching      | Near real-time replication              |
+| Content type                | Static content                  | Dynamic content                          |
+| Update frequency            | Cached (may last a day)         | Updated continuously                     |
+| Accessibility               | Available worldwide             | Only in target regions                    |
+
+**Summary:**
+- CloudFront = CDN → **cache content globally**.
+- S3 CRR = replicate bucket → **region-to-region copy**, not caching.
+- Both serve **different purposes**.
+
+---
+
+# Lesson 2: CloudFront - ALB/EC2 as an Origin
+
+## VPC Origins (Recommended / New Way)
+- Allows CloudFront to **connect to applications in private subnets** inside a VPC.
+- Supports **Application Load Balancers (ALB)**, **Network Load Balancers (NLB)**, and **EC2 instances**.
+- Keeps everything **private** — no need to expose your applications to the internet.
+- **Architecture:**
+  1. Create a **CloudFront distribution** with multiple edge locations.
+  2. Configure a **VPC origin** in CloudFront.
+  3. Connect the VPC origin to your **private backend** (ALB, NLB, EC2).
+  4. CloudFront forwards traffic to private subnets securely.
+- **Benefits:**
+  - Most **secure setup**.
+  - You control what is exposed via CloudFront.
+  - No need to manage public IPs or security group exceptions.
+
+## Public Network Origins (Older Method)
+- EC2 or ALB had to be **public**.
+- CloudFront edge locations accessed these public endpoints.
+- **Requirements / Steps:**
+  1. Find **all CloudFront edge public IPs**.
+  2. Update **security groups** of EC2 / ALB to allow traffic from these IPs.
+  3. ALB can be public, while EC2 can remain private behind it.
+- **Drawbacks:**
+  - Tedious to maintain (CloudFront IPs can change).
+  - Risk of accidentally exposing EC2 or ALB to the wider internet.
+  - Less secure than using VPC origins.
+
+## Summary
+- **New approach:** Use **VPC origins** → secure, private, easier to manage.
+- **Old approach:** Public network origins → requires IP whitelisting and more manual configuration.
+
+---
+
+# Lesson 3: CloudFront Geo Restriction
+
+- **Purpose:** Restrict access to a CloudFront distribution based on the **country** of the user.
+- **Types of Restrictions:**
+  - **Allowlist:** Only users from specified countries can access the content.
+  - **Blocklist:** Users from specified countries are blocked from accessing the content.
+- **How it Works:**
+  - CloudFront uses a **third-party Geo-IP database** to map a user's IP address to their country.
+- **Use Cases:**
+  - Complying with **copyright laws** or regional content restrictions.
+- **Configuration:**
+  1. Go to **Security** in your CloudFront distribution.
+  2. Select **Geographic Restrictions**.
+  3. Click **Edit**.
+  4. Choose **Allowlist** or **Blocklist**.
+  5. Enter the countries to allow or block.
+  6. Save changes.
+- **Example:**  
+  Allowlist: India, United States → Only users from these countries can access the distribution.
+
+---
+
+# Lesson 4: CloudFront Pricing & Price Classes
+
+## Pricing Overview
+- CloudFront **edge locations** are globally distributed.
+- **Data transfer costs** vary by region.
+  - Example (first 10 TB/month):
+    - **US, Mexico, Canada:** $0.085/GB
+    - **India:** $0.17/GB
+- **Volume discounts:** More data transferred → lower cost.
+  - Example: >5 PB/month from US → $0.02/GB
+
+## Price Classes
+- Used to **control costs** by limiting which edge locations are used.
+- **Three options:**
+  1. **Price Class All:** All edge locations worldwide (best performance, higher cost)
+  2. **Price Class 200:** Most regions, excludes the most expensive locations
+  3. **Price Class 100:** Only the least expensive regions (e.g., North America & Europe)
+
+## Summary
+- Choose a **price class** based on:
+  - Desired **performance** (number of edge locations)
+  - **Budget considerations**
+- Helps balance **latency** vs **cost**.
+
+---
+
+# lesson 5: CloudFront Cache Invalidation
+
+## Why Cache Invalidation is Needed
+- CloudFront **caches content** from your backend origin at edge locations.
+- If the **origin content is updated**, edge locations continue serving cached versions **until TTL expires**.
+- Sometimes, you want the **new content served immediately** — this is where **cache invalidation** comes in.
+
+## How Invalidation Works
+- You can **force a cache refresh** for:
+  - Specific files: `/index.html`
+  - Entire directories: `/images/*`
+  - Entire cache: `/*`
+- Edge locations will **remove the specified cached content**, and the next request will fetch the updated content from the origin.
+
+## Example
+1. CloudFront distribution with **two edge locations**.
+2. Cached content:
+   - `index.html`
+   - `/images/*`
+3. TTL set to 1 day.
+4. Admin updates files in **S3 origin**.
+5. Admin performs invalidation:
+   - `/index.html` → invalidates only index file
+   - `/images/*` → invalidates all images
+6. Next user request:
+   - Edge location detects missing cache
+   - Fetches **updated content** from origin
+   - Updates its cache
+
+## Key Takeaways
+- Cache invalidation allows **instant content refresh**.
+- Can target **specific paths** or **entire cache**.
+- Helps maintain **up-to-date content** for users.
+
+---
+
+# lesson 6: AWS Global Accelerator
+
+## Problem It Solves
+- Applications deployed in **one region** but with **global users** face:
+  - High latency due to multiple hops through the public internet.
+  - Less stable connections.
+- Goal: Route traffic **faster and more reliably** over the AWS global network.
+
+## Key Concept: Unicast vs Anycast IP
+- **Unicast IP**
+  - Each server has a unique IP.
+  - Clients connect to a specific server using its IP.
+- **Anycast IP**
+  - Multiple servers share the same IP.
+  - Clients are automatically routed to the **nearest server**.
+  - AWS Global Accelerator leverages Anycast IP for low-latency routing.
+
+## How AWS Global Accelerator Works
+1. Creates **two global Anycast IP addresses** for your application.
+2. User traffic goes to the **nearest edge location**.
+
+
+

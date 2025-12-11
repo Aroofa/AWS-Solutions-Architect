@@ -137,15 +137,6 @@ More notes:
 - Windows < 10  
 - Windows >= 10  
 
-### SSH Troubleshooting
-Students have the most problems with SSH  
-If things don’t work:
-- Re-watch the lecture  
-- Read the troubleshooting guide  
-- Try EC2 Instance Connect  
-- If one method works, you’re good  
-- If none work, that’s okay — the course won’t use SSH much  
-
 ---
 
 # EC2 Instance Purchasing Options
